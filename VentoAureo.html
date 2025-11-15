@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Part 3 - Stardust Crusaders</title>
+
+<!-- PDF.js (same major version as your PhantomBlood) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.12.313/pdf.min.js"></script>
+
+<style>
+  :root{
+    --gold: #ffd700; /* bright gold */
+    --bg1: #fff4c2;  /* pale gold gradient base */
+    --bg2: #ffeaa0;  /* pale warm gold */
+    --card: #fffef6; /* slightly warm white */
+    --hover-purple: #ffffff; /* white glow */
+  }
+
+  html,body {
+    height:100%;
+    margin:0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: radial-gradient(circle at top, var(--bg2) 0%, var(--bg1) 100%);
+    color: #000;
+    overflow-y: auto;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  header {
+    background: linear-gradient(90deg, #ff4fa3, #ff76b9); /* pink header */
+    padding: 20px;
+    text-align: center;
+    font-size: 28px;
+    font-weight: 700;
+    color: white;
+    border-bottom: 4px solid var(--gold);
+    box-shadow: 0 6px 24px rgba(0,0,0,0.25);
+    position: sticky;
+    top:0;
+    z-index: 10;
+  }
+
+  .subheader {
+    text-align:center;
+    color: #d6b300;
+    margin-top:6px;
+    font-size:14px;
+    opacity:.9;
+  }
+
+  .controls {
+    display:flex;
+    justify-content:center;
+    gap:12px;
+    padding:16px 20px;
+  }
+
+  .btn {
+    background:#ffe6a8;
+    color:#b88a00;
+    border:2px solid var(--gold);
+    padding:10px 14px;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:600;
+    transition:all .18s ease;
+  }
+  .btn:hover {
+    background:#fff0c7;
+    box-shadow:0 6px 18px rgba(255,255,255,0.5);
+    color:#d49c00;
+    border-color: var(--hover-purple);
+  }
+
+  .grid {
+    display:grid;
+    grid-template-columns: repeat( auto-fit, minmax(220px, 1fr) );
+    gap:18px;
+    padding:20px;
+    max-width:1200px;
+    margin: 0 auto 80px;
+  }
+
+  .volume-card {
+    background: var(--card);
+    border-radius: 12px;
+    overflow: hidden;
+    border: 2px solid rgba(255,215,0,0.4);
+    cursor: pointer;
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+  .volume-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 18px 30px rgba(255,255,255,0.45); /* white glow */
+    outline: 3px solid rgba(255,255,255,0.4);
+  }
+
+  .volume-card img {
+    width:100%;
+    height:320px;
+    object-fit:cover;
+    display:block;
+    -webkit-user-drag: none;
+    user-drag: none;
+    pointer-events: none;
+  }
+
+  .volume-title {
+    padding:12px;
+    text-align:center;
+    color: #b8860b;
+    font-weight:700;
+    font-size:15px;
+  }
+
+  /* Reader overlay (inline pdf) */
+  #reader {
+    display:none;
+    position:fixed;
+    inset:0;
+    z-index:99999;
+    background: rgba(0,0,0,0.92);
+    align-items:center;
+    justify-content:center;
+    flex-direction: column;
+  }
+
+  #pdf-canvas {
+    max-width: 96%;
+    max-height: 84%;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+    background:#fff;
+  }
+
+  /* back/home buttons inside reader */
+  .reader-topbar {
+    position:absolute;
+    top:12px;
+    left:12px;
+    display:flex;
+    gap:8px;
+    z-index:1000000;
+  }
+
+  .reader-topbar .btn {
+    padding:8px 12px;
+    font-size:14px;
+    border-radius:6px;
+  }
+
+  /* page info bottom-right */
+  #page-info {
+    position:absolute;
+    right:14px;
+    bottom:14px;
+    background: rgba(255,215,0,0.18);
+    color: var(--gold);
+    padding:8px 12px;
+    border-radius:8px;
+    font-weight:600;
+    z-index:1000000;
+    backdrop-filter: blur(2px);
+  }
+
+  /* Tap zones */
+  .nav-zone {
+    position:absolute;
+    top:72px;
+    bottom:0;
+    width:50%;
+    z-index:999990;
+  }
+  #prev-zone { left:0; }
+  #next-zone { right:0; }
+
+  @media (max-width:640px){
+    header{font-size:20px}
+    .volume-card img{height:220px}
+    .reader-topbar { left:8px; top:8px }
+    .nav-zone { top:56px }
+  }
+</style>
+
+</head>
+<body>
+
+<header>VentoAureo — Part 5</header>
+
+<div class="controls">
+  <button class="btn" onclick="goHome()">🏠 Home</button>
+</div>
+
+<main class="grid" id="volume-list">
+  <!-- Volume cards (click will open inline PDF reader) -->
+  <div class="volume-card" onclick="openPDF('JoJo_s Bizzare Adventure - Part 5 - Volume 47 - Goodbye Morioh - Golden Heart.pdf')">
+    <img src="vol47cover.png" alt="Vol 47">
+    <div class="volume-title">GoldenWind – Volume 47</div>
+  </div>
+
+  <div class="volume-card" onclick="openPDF('JoJo_s Bizzare Adventure - Part 5 - Volume 48 - His Dream is to be a Gang Star.pdf')">
+    <img src="vol48cover.png" alt="Vol 48">
+    <div class="volume-title">GoldenWind – Volume 48</div>
+  </div>
+
+  <div class="volume-card" onclick="openPDF('JoJo_s Bizzare Adventure - Part 5 - Volume 49 - Find Polpo_s Hidden Treasure!.pdf')">
+    <img src="vol49cover.png" alt="Vol 49">
+    <div class="volume-title">GoldenWind – Volume 49</div>
+  </div>
+
+  <div class="volume-card" onclick="openPDF('JoJo_s Bizzare Adventure - Part 5 - Volume 50 - Capo Buchellati - His First Assignment from the Boss.pdf')">
+    <img src="vol50cover.png" alt="Vol 50">
+    <div class="volume-title">GoldenWind – Volume 50</div>
+  </div>
+
+  <div class="volume-card" onclick="openPDF('JoJo_s Bizzare Adventure - Part 5 - Volume 51 - Second Order from the Boss - Retrieve the Key!.pdf')">
+    <img src="vol51cover.png" alt="Vol 51">
+    <div class="volume-title">GoldenWind – Volume 51</div>
+  </div>
+
+  <div class="volume-card" onclick="openPDF('JoJo_s Bizzare Adventure - Part 5 - Volume 52 - The Firenze-Bound Super Express.pdf')">
+    <img src="vol52cover.png" alt="Vol 52">
+    <div class="volume-title">GoldenWind – Volume 52</div>
+  </div>
+
+  <div class="volume-card" onclick="openPDF('JoJo_s Bizzare Adventure - Part 5 - Volume 53 - The Grateful Dead.pdf')">
+    <img src="vol53cover.png" alt="Vol 53">
+    <div class="volume-title">GoldenWind – Volume 53</div>
+  </div>
+
+  <div class="volume-card" onclick="openPDF('JoJo_s Bizzare Adventure - Part 5 - Volume 54 - Gold Experience Strikes Back.pdf')">
+    <img src="vol54cover.png" alt="Vol 54">
+    <div class="volume-title">GoldenWind – Volume 54</div>
+  </div>
+
+  <div class="volume-card" onclick="openPDF('JoJo_s Bizzare Adventure - Part 5 - Volume 55 - The Landing at Venezia.pdf')">
+    <img src="vol55cover.png" alt="Vol 55">
+    <div class="volume-title">GoldenWind – Volume 55</div>
+  </div>
+
+  <div class="volume-card" onclick="openPDF('JoJo_s Bizzare Adventure - Part 5 - Volume 56 - The G in Guts.pdf')">
+    <img src="vol56cover.png" alt="Vol 56">
+    <div class="volume-title">GoldenWind – Volume 56</div>
+  </div>
+
+  <div class="volume-card" onclick="openPDF('JoJo_s Bizzare Adventure - Part 3 - Volume 23 - D_arby_s Collection.pdf')">
+    <img src="vol57cover.png" alt="Vol 57">
+    <div class="volume-title">GoldenWind – Volume 57</div>
+  </div>
+
+  <div class="volume-card" onclick="openPDF('JoJo_s Bizzare Adventure - Part 5 - Volume 58 - My Name is Doppio.pdf')">
+    <img src="vol58cover.png" alt="Vol 58">
+    <div class="volume-title">GoldenWind – Volume 58</div>
+  </div>
+
+  <div class="volume-card" onclick="openPDF('JoJo_s Bizzare Adventure - Part 5 - Volume 59 - Feels Like the Sky Could Come Down On Us At Any Moment.pdf')">
+    <img src="vol59cover.png" alt="Vol 59">
+    <div class="volume-title">GoldenWind – Volume 59</div>
+  </div>
+
+  <div class="volume-card" onclick="openPDF('JoJo_s Bizzare Adventure - Part 5 - Volume 60 - Meet the Man in the Coliseum!.pdf')">
+    <img src="vol60cover.png" alt="Vol 60">
+    <div class="volume-title">GoldenWind – Volume 60</div>
+  </div>
+
+  <div class="volume-card" onclick="openPDF('JoJo_s Bizzare Adventure - Part 5 - Volume 61 - His Name is Diavolo.pdf')">
+    <img src="vol61cover.png" alt="Vol 61">
+    <div class="volume-title">GoldenWind – Volume 61</div>
+  </div>
+
+  <div class="volume-card" onclick="openPDF('JoJo_s Bizzare Adventure - Part 5 - Volume 62 - The Requiem Plays Quietly.pdf')">
+    <img src="vol62cover.png" alt="Vol 62">
+    <div class="volume-title">GoldenWind – Volume 62</div>
+  </div>
+
+  <div class="volume-card" onclick="openPDF('JoJo_s Bizzare Adventure - Part 5 - Volume 63 - Sleeping Slaves.pdf')">
+    <img src="vol63cover.png" alt="Vol 63">
+    <div class="volume-title">GoldenWind – Volume 63</div>
+  </div>
+</main>
+
+<!-- Inline PDF reader overlay -->
+<div id="reader" role="dialog" aria-hidden="true">
+  <div class="reader-topbar">
+    <button class="btn" onclick="goHome()">🏠 Home</button>
+    <button class="btn" onclick="history.back()">← Back</button>
+  </div>
+
+  <canvas id="pdf-canvas" aria-label="PDF canvas"></canvas>
+
+  <div id="prev-zone" class="nav-zone" onclick="prevPage()" title="Previous page (left tap)"></div>
+  <div id="next-zone" class="nav-zone" onclick="nextPage()" title="Next page (right tap)"></div>
+
+  <div id="page-info">Page 0 / 0</div>
+</div>
+
+<script>
+
+
+let pdfDoc = null;
+let pageNum = 1;
+const scale = 1.5;
+const canvas = document.getElementById('pdf-canvas');
+const ctx = canvas.getContext('2d');
+const reader = document.getElementById('reader');
+const pageInfo = document.getElementById('page-info');
+const volumeList = document.getElementById('volume-list');
+
+/* Prevent image dragging / ghost */
+document.addEventListener('dragstart', e => e.preventDefault());
+document.addEventListener('contextmenu', e => e.preventDefault());
+
+async function openPDF(url) {
+  // show overlay
+  reader.style.display = 'flex';
+  reader.setAttribute('aria-hidden','false');
+  // prevent background scroll and optionally hide the grid so the webview doesn't keep focus on it
+  document.body.style.overflow = 'hidden';
+  volumeList.style.display = 'none';
+  // try to load
+  try {
+    const loadingTask = pdfjsLib.getDocument(url);
+    pdfDoc = await loadingTask.promise;
+    pageNum = 1;
+    renderPage(pageNum);
+  } catch (err) {
+    // on failure, clear canvas, show page info and leave overlay open so user can close
+    ctx.clearRect(0,0,canvas.width, canvas.height);
+    pageInfo.innerText = "Failed to load PDF";
+    console.error('PDF load error:', err);
+  }
+}
+
+function renderPage(num) {
+  if (!pdfDoc) return;
+  pdfDoc.getPage(num).then(page => {
+    const viewport = page.getViewport({ scale });
+    // fit canvas to viewport
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    // render
+    const renderContext = { canvasContext: ctx, viewport: viewport };
+    page.render(renderContext);
+    pageInfo.innerText = `${num} / ${pdfDoc.numPages}`;
+  }).catch(err => {
+    console.error('render error', err);
+  });
+}
+
+function prevPage() {
+  if (!pdfDoc) return;
+  if (pageNum <= 1) return;
+  pageNum--;
+  renderPage(pageNum);
+}
+
+function nextPage() {
+  if (!pdfDoc) return;
+  if (pageNum >= pdfDoc.numPages) return;
+  pageNum++;
+  renderPage(pageNum);
+}
+
+function closePDF() {
+  reader.style.display = 'none';
+  reader.setAttribute('aria-hidden','true');
+  // restore content and scroll
+  volumeList.style.display = '';
+  document.body.style.overflow = 'auto';
+  // clear canvas
+  if (ctx) ctx.clearRect(0,0,canvas.width, canvas.height);
+  pdfDoc = null;
+  pageNum = 1;
+  pageInfo.innerText = '';
+}
+
+/* preserve scroll position between navigations exactly like PhantomBlood */
+const SCROLL_KEY = 'scroll_part3';
+document.addEventListener('DOMContentLoaded', () => {
+  const saved = localStorage.getItem(SCROLL_KEY);
+  if (saved) window.scrollTo(0, parseInt(saved,10));
+});
+window.addEventListener('scroll', () => {
+  localStorage.setItem(SCROLL_KEY, window.scrollY);
+});
+
+function goHome(){
+  window.location.href = 'https://penyu444.github.io/JojosBizarreAdventureStorage/JojosBizarreAdventure.html';
+}
+</script>
+
+</body>
+</html>
